@@ -1,0 +1,71 @@
+---
+title       : Preliminary Diabetes Risk Assessment
+subtitle    : 
+author      : Thanapol Tanprayoon
+job         : 
+framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+widgets     : []            # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+knit        : slidify::knit2slides
+---
+
+## Problem Statement
+
+* Estimated 23.6 million patients in US and is the 7th leading cause of death.
+* Risk awareness lead to better self-management.
+* Therefore, this application aims to preliminarily assess Diabetes risk from their basic info such as ages, gender, etc..
+
+--- .class #id 
+
+## About the Dataset
+
+* National Health and Nutrition Examination Survey (NHANES) 2011-2012
+* 2 years survey by National Center for Health Statistics
+* Contain demographical, behavioral, laboratory, and dietary data vs their Health data (various disease & problems).
+* This project will focus on basic info such as ages and gender vs their diabetes health profile.
+
+--- .class #id 
+
+## Exploratory Analysis
+
+```{r explore, echo = FALSE, cache = TRUE}
+library(SASxport)
+s1 <- read.xport("/dataprod/DEMO_G.XPT")
+s2 <- read.xport("/dataprod/BMX_G.XPT")
+s4 <- read.xport("/dataprod/DIQ_G.XPT")
+sAll <- merge(s4,s1,by="SEQN")
+sAll <- merge(sAll,s2,by="SEQN")
+sel <- data.frame(age=sAll$RIDAGEYR,race=as.factor(sAll$RIDRETH3),gender=as.factor(sAll$RIAGENDR),wt=sAll$BMXWT,ht=sAll$BMXHT,waist=sAll$BMXWAIST,diab= as.factor(sAll$DIQ010))
+levels(sel$race) <- c("Mexican American", "Other Hispanic", "White", "Black", "Asian", "Other")
+levels(sel$gender) <- c("Male", "Female")
+levels(sel$diab) <- c("High", "Low", "High", NA, NA)
+sel <- sel[-(is.na(sel$diab)),]
+hasNA <- which(apply(sel, 1, function(x) {sum(is.na(x))}) > 0)
+sel <- sel[-hasNA,]
+par(mfrow=c(2,3),las=1)
+boxplot(sel$age~ sel$diab,xlab="Diabetes?",ylab="Age",main="Age")
+plot(sel$race~ sel$diab,xlab="Diabetes?",ylab="Race",main="Race")
+plot(sel$gender~ sel$diab,xlab="Diabetes?",ylab="Gender",main="Gender")
+boxplot(sel$wt~ sel$diab,xlab="Diabetes?",ylab="Weight",main="Weight (kg)")
+boxplot(sel$ht~ sel$diab,xlab="Diabetes?",ylab="Height",main="Height (cm)")
+boxplot(sel$waist~ sel$diab,xlab="Diabetes?",ylab="Waist",main="Waist")
+```
+
+--- .class #id 
+
+## Work Flow
+
+* Import data tables (SAS XPT) into R
+* Merge data tables by matching ID
+* Data preprocessing
+* Fit and Evaluate models
+* Create App that take user input to fit into the model
+
+--- .class #id 
+
+## Findings and Discussion
+
+* Age, waist circumference and Ethnicity has high impact on Diabetes risks.
+* There are some laboratory and questionnaire data featured in the NHANES survey which might be useful to improve the model.
